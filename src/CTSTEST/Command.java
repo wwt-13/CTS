@@ -1,7 +1,7 @@
-package CTS;
+package CTSTEST;
 
-import CTS.exceptions.*;
-import CTS.types.*;
+import CTSTEST.exceptions.*;
+import CTSTEST.types.*;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -361,11 +361,11 @@ public class Command {
             }
         }
         else {
-            if (Date.getTrainDate().isEmpty()) {
+            if (CTS.Date.getTrainDate().isEmpty()) {
                 System.out.println("No Trains");
             }
             else {
-                Date.outputTrain();
+                CTS.Date.outputTrain();
             }
         }
     }
