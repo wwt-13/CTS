@@ -55,6 +55,24 @@ public class Line {
         return currentCap == 0;
     }
 
+    public void addStation(Station station) {
+        stations.put(station.getStationID(), station);
+    }
+
+    public void delStation(String stationID) {
+        stations.remove(stationID);
+    }
+
+    public void addTrain(String trainID) {
+        trains.add(trainID);
+        currentCap++;
+    }
+
+    public void delTrain(String trainID) {
+        trains.remove(trainID);
+        currentCap--;
+    }
+
 
     @Override
     public String toString() {
@@ -79,9 +97,9 @@ public class Line {
 
     public void outputTrain() {
         HashMap<String, Integer> order = new HashMap<>() {{
-            put("Normal", 1);
+            put("Koya", 1);
             put("Gatimaan", 2);
-            put("Koya", 3);
+            put("Normal", 3);
         }};
         List<Train> list = new ArrayList<Train>() {{
             for (String trainID : trains) {
@@ -101,7 +119,7 @@ public class Line {
         });
         int i = 1;
         for (Train train : list) {
-            System.out.println("[" + i + "] " + train);
+            System.out.println("[" + (i++) + "] " + train);
         }
     }
 }

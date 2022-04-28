@@ -1,6 +1,9 @@
 package CTS;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 
 /*
  * 数据类,用于存放CTS中所涉及的所有数据
@@ -46,21 +49,45 @@ public class Date {
     }
 
     public static void addStation(String lineID, Station station) {
-        LineDate.get(lineID).getStations().put(station.getStationID(), station);
+        LineDate.get(lineID).addStation(station);
     }
 
     public static void delStation(String lineID, String stationID) {
-        LineDate.get(lineID).getStations().remove(stationID);
+        LineDate.get(lineID).delStation(stationID);
     }
 
     public static void addTrain(String lineID, Train train) {
-        LineDate.get(lineID).getTrains().add(train.trainID);
+        LineDate.get(lineID).addTrain(train.trainID);
         TrainDate.put(train.trainID, train);
     }
 
     public static void delTrain(String trainID) {
         String lineID = TrainDate.get(trainID).lineID;
-        LineDate.get(lineID).getTrains().remove(trainID);
+        LineDate.get(lineID).delTrain(trainID);
         TrainDate.remove(trainID);
+    }
+
+    public static void outputTrain() {
+        HashMap<String, Integer> order = new HashMap<>() {{
+            put("Koya", 1);
+            put("Gatimaan", 2);
+            put("Normal", 3);
+        }};
+        List<Train> list = new ArrayList<Train>(getTrainDate().values());
+        list.sort(new Comparator<Train>() {
+            @Override
+            public int compare(Train s1, Train s2) {
+                if (s1.name.equals(s2.name)) {
+                    return s1.trainID.compareTo(s2.trainID);
+                }
+                else {
+                    return order.get(s1.name) - order.get(s2.name);
+                }
+            }
+        });
+        int i = 1;
+        for (Train train : list) {
+            System.out.println("[" + (i++) + "] " + train);
+        }
     }
 }

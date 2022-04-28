@@ -2,7 +2,6 @@ package CTS;
 
 import CTS.exceptions.*;
 
-import java.util.Arrays;
 import java.util.Scanner;
 
 /*
@@ -27,7 +26,7 @@ public class Test {
                     UserException | LineException | TrainException | UseException | DuplicateActionConflictException |
                     UnknownErrorException e) {
                 System.out.println(e.getMessage());
-                System.out.println(Arrays.toString(e.getStackTrace()));
+//                System.out.println(Arrays.toString(e.getStackTrace()));
             }
         }
     }

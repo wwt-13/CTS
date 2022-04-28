@@ -3,7 +3,10 @@ package CTS;
 import CTS.exceptions.*;
 import CTS.types.*;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 
 /*
  * 方法运行的基本步骤
@@ -35,8 +38,7 @@ public class Command {
     }
 
     /* 读取方法:整个程序的中枢方法,对读取得到的String字符串进行处理并决定调用各种函数 */
-    public void read(String[] argArr) throws CommandNotFoundException,
-            DuplicateActionConflictException {
+    public void read(String[] argArr) throws CommandNotFoundException {
         /* 获取指令类型+指令参数数量检测 */
         CmdType cmdType = CmdType.getValue(argArr[0]);
         if (!Check.checkArgNum(cmdType, argArr.length, type)) {
@@ -59,10 +61,16 @@ public class Command {
                 }
             }
             case UPGRADE -> {
+                if (type == Privilege.SUPER) {
+                    throw new DuplicateActionConflictException();
+                }
                 type = Privilege.SUPER;
                 System.out.println("DuluDulu");
             }
             case DOWNGRADE -> {
+                if (type == Privilege.NORMAL) {
+                    throw new DuplicateActionConflictException();
+                }
                 type = Privilege.NORMAL;
                 System.out.println("DaDaDa");
             }
@@ -94,7 +102,7 @@ public class Command {
             case LISTLINE -> listLine();
             /* 没办法,由于报错顺序的规定问题,这一部分的报错不符合全局规定 */
             case ADDTRAIN -> { /* addTrain trainID lineID seat_i_price seat_i_amount */
-                if (((argArr[1].charAt(0) == '0' || argArr[1].charAt(0) == 'G') && argArr.length != 8) || (argArr[1].charAt(0) == 'K' && argArr.length != 6)) {
+                if (((argArr[1].charAt(0) == '0' || argArr[1].charAt(0) == 'G') && argArr.length != 9) || (argArr[1].charAt(0) == 'K' && argArr.length != 7)) {
                     throw new ArgumentsIllegalException();
                 }
                 else {
@@ -109,7 +117,7 @@ public class Command {
                         }
                     }
                 }
-                if (!Check.check(CheckType.TRAIN_ID, argArr[2])) {
+                if (!Check.check(CheckType.TRAIN_ID, argArr[1])) {
                     throw new TrainException(TrainIllegalType.TRAIN_SERIAL_ILLEGAL);
                 }
                 else {
@@ -125,7 +133,7 @@ public class Command {
                     checkTicket(argArr);
                 }
             }
-            case LISTTRAIN -> listTrain(argArr[1]);
+            case LISTTRAIN -> listTrain(argArr);
             case LOGIN -> { /* login aadhaar name */
             }
             case LOGOUT -> {
@@ -175,7 +183,7 @@ public class Command {
             throw new LineException(LineIllegalType.LINE_EXIST);
         }
         else if (Integer.parseInt(argArr[2]) <= 0) {
-            throw new LineException(LineIllegalType.LINE_CAPACITY_ILLEGAL);
+            throw new LineException(LineIllegalType.CAPACITY_ILLEGAL);
         }
         else { /* 此时已经可以确认数据完全正确,直接添加即可 */
             Line line = new Line(argArr[1], Integer.parseInt(argArr[2]));
@@ -245,7 +253,14 @@ public class Command {
         }
         else {
             int i = 1;
-            for (Line line : Date.getLineDate().values()) {
+            List<Line> list = new ArrayList<>(Date.getLineDate().values());
+            list.sort(new Comparator<Line>() {
+                @Override
+                public int compare(Line l1, Line l2) {
+                    return l1.getLineID().compareTo(l2.getLineID());
+                }
+            });
+            for (Line line : list) {
                 System.out.println("[" + (i++) + "] " + line);
             }
         }
@@ -257,20 +272,20 @@ public class Command {
      * 2.将列车添加到具体的线路中
      * */
     public void addTrain(String[] argArr) {
-        if (!Date.getTrainDate().containsKey(argArr[1])) {
+        if (Date.getTrainDate().containsKey(argArr[1])) {
             throw new TrainException(TrainIllegalType.TRAIN_SERIAL_DUPLICATE);
         }
-        else if (!Date.getLineDate().containsKey(argArr[2]) || Date.getLineDate().get(argArr[1]).isFull()) {
+        else if (!Date.getLineDate().containsKey(argArr[2]) || Date.getLineDate().get(argArr[2]).isFull()) {
             throw new LineException(LineIllegalType.LINE_CAPACITY_ILLEGAL);
         }
         else {
             for (int i = 3; i < argArr.length; i += 2) {
-                if (Float.parseFloat(argArr[i]) > 0) {
+                if (Float.parseFloat(argArr[i]) < 0) {
                     throw new TrainException(TrainIllegalType.PRICE_ILLEGAL);
                 }
             }
             for (int i = 4; i < argArr.length; i += 2) {
-                if (Integer.parseInt(argArr[i]) > 0) {
+                if (Integer.parseInt(argArr[i]) < 0) {
                     throw new TrainException(TrainIllegalType.TICKET_NUM_ILLEGAL);
                 }
             }
@@ -281,6 +296,7 @@ public class Command {
                 default -> throw new ArgumentsIllegalException();
             };
             Date.addTrain(argArr[2], train);
+            System.out.println("Add Train Success");
         }
     }
 
@@ -293,6 +309,7 @@ public class Command {
         }
         else {
             Date.delTrain(trainID);
+            System.out.println("Del Train Success");
         }
     }
 
@@ -331,15 +348,20 @@ public class Command {
     }
 
     /* 列出某条线路上的所有列车信息 */
-    public void listTrain(String lineID) {
-        if (!Date.getLineDate().containsKey(lineID)) {
-            throw new LineException(LineIllegalType.LINE_NOT_EXIST);
-        }
-        else if (Date.getLineDate().get(lineID).isEmpty()) {
-            System.out.println("No Trains");
+    public void listTrain(String[] argArr) {
+        if (argArr.length == 2) {
+            if (!Date.getLineDate().containsKey(argArr[1])) {
+                throw new LineException(LineIllegalType.LINE_NOT_EXIST);
+            }
+            else if (Date.getLineDate().get(argArr[1]).isEmpty()) {
+                System.out.println("No Trains");
+            }
+            else {
+                Date.getLineDate().get(argArr[1]).outputTrain();
+            }
         }
         else {
-            Date.getLineDate().get(lineID).outputTrain();
+            Date.outputTrain();
         }
     }
 

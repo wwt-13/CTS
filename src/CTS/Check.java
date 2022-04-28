@@ -1,7 +1,6 @@
 package CTS;
 
 import CTS.exceptions.CommandNotFoundException;
-import CTS.exceptions.DuplicateActionConflictException;
 import CTS.types.CheckType;
 import CTS.types.CmdType;
 
@@ -49,23 +48,12 @@ public class Check {
     /* 参数个数检查+权限检查 */
     public static boolean checkArgNum(CmdType t, int length, Command.Privilege type) {
         return switch (t) {
-            case QUIT, LISTLINE, LOGOUT, LISTORDER -> length == 1;
-            case LINEINFO, LISTTRAIN -> length == 2;
+            case QUIT, LISTLINE, LOGOUT, LISTORDER, UPGRADE, DOWNGRADE -> length == 1;
+            case LISTTRAIN -> length == 1 || length == 2;
+            case LINEINFO -> length == 2;
             case LOGIN -> length == 3;
             case ADDUSER -> length == 4;
             case BUYTICKET -> length == 6;
-            case UPGRADE -> {
-                if (type == Command.Privilege.SUPER) {
-                    throw new DuplicateActionConflictException();
-                }
-                yield length == 2;
-            }
-            case DOWNGRADE -> {
-                if (type == Command.Privilege.NORMAL) {
-                    throw new DuplicateActionConflictException();
-                }
-                yield length == 2;
-            }
             case ADDLINE -> {
                 if (type == Command.Privilege.NORMAL) {
                     throw new CommandNotFoundException();
@@ -94,7 +82,7 @@ public class Check {
                 if (type == Command.Privilege.NORMAL) {
                     throw new CommandNotFoundException();
                 }
-                yield length == 6 || length == 8;
+                yield length == 7 || length == 9;
             }
             case CHECKTICKET -> {
                 if (type == Command.Privilege.SUPER) {

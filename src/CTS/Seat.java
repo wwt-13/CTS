@@ -9,6 +9,13 @@ public class Seat {
     public int total;
     public int left;
 
+    public Seat(String type, double price, int total, int left) {
+        this.type = type;
+        this.price = price;
+        this.total = total;
+        this.left = left;
+    }
+
     @Override
     public String toString() {
         DecimalFormat df = new DecimalFormat(".00");
