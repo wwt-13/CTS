@@ -48,16 +48,18 @@ public class Line {
     }
 
     public boolean isFull() {
-        return currentCap < capacity;
+        return currentCap == capacity;
+    }
+
+    public boolean isEmpty() {
+        return currentCap == 0;
     }
 
 
     @Override
     public String toString() {
-        StringBuilder output = new StringBuilder();
-        output.append(this.lineID);
-        output.append(" ");
-        output.append(this.currentCap).append("/").append(this.capacity);
+        StringBuilder sb = new StringBuilder();
+        sb.append(this.lineID).append(" ").append(this.currentCap).append("/").append(this.capacity);
         /*
          * 这里还得看看如何自定义排序方法,之后看完了再来继续写
          * 鉴于这里只是输出数据,所以选择使用ArrayList辅助排序的方法来完成HashMap内元素的排序输出
@@ -70,9 +72,9 @@ public class Line {
             }
         });
         for (Station station : list) {
-            output.append(" ").append(station.getStationID()).append(" ").append(station.getDistance());
+            sb.append(" ").append(station.getStationID()).append(":").append(station.getDistance());
         }
-        return output.toString();
+        return sb.toString();
     }
 
     public void outputTrain() {

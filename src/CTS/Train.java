@@ -27,12 +27,10 @@ public class Train {
         DecimalFormat df = new DecimalFormat(".00");
         StringBuilder sb = new StringBuilder();
         Seat seatTmp = seat(type);
-        sb.append("[").append(trainID).append(": ").append(start.getStationID()).append("->").append(end.getStationID()).append("] ");
-        sb.append("seat:").append(type).append(" ");
-        sb.append("remain:").append(seatTmp.left).append(" ");
-        sb.append("distance:").append(Math.abs(start.getDistance()) - end.getDistance()).append(
-                " ");
-        sb.append("price:").append(df.format(seatTmp.price));
+        sb.append("[").append(trainID).append(": ").append(start.getStationID()).append("->").append(end.getStationID()).append("]");
+        sb.append(" seat:").append(type).append(" remain:").append(seatTmp.left);
+        sb.append(" distance:").append(Math.abs(start.getDistance() - end.getDistance()));
+        sb.append(" price:").append(df.format(seatTmp.price));
         System.out.println(sb);
     }
 

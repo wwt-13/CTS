@@ -1,6 +1,9 @@
 package CTS;
 
+import CTS.exceptions.CommandNotFoundException;
+import CTS.exceptions.DuplicateActionConflictException;
 import CTS.types.CheckType;
+import CTS.types.CmdType;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,5 +44,65 @@ public class Check {
         };
         Matcher matcher = pattern.matcher(arg);
         return matcher.find();
+    }
+
+    /* 参数个数检查+权限检查 */
+    public static boolean checkArgNum(CmdType t, int length, Command.Privilege type) {
+        return switch (t) {
+            case QUIT, LISTLINE, LOGOUT, LISTORDER -> length == 1;
+            case LINEINFO, LISTTRAIN -> length == 2;
+            case LOGIN -> length == 3;
+            case ADDUSER -> length == 4;
+            case BUYTICKET -> length == 6;
+            case UPGRADE -> {
+                if (type == Command.Privilege.SUPER) {
+                    throw new DuplicateActionConflictException();
+                }
+                yield length == 2;
+            }
+            case DOWNGRADE -> {
+                if (type == Command.Privilege.NORMAL) {
+                    throw new DuplicateActionConflictException();
+                }
+                yield length == 2;
+            }
+            case ADDLINE -> {
+                if (type == Command.Privilege.NORMAL) {
+                    throw new CommandNotFoundException();
+                }
+                yield length >= 5 && (length - 3) % 2 == 0;
+            }
+            case DELLINE, DELTRAIN -> {
+                if (type == Command.Privilege.NORMAL) {
+                    throw new CommandNotFoundException();
+                }
+                yield length == 2;
+            }
+            case ADDSTATION -> {
+                if (type == Command.Privilege.NORMAL) {
+                    throw new CommandNotFoundException();
+                }
+                yield length == 4;
+            }
+            case DELSTATION -> {
+                if (type == Command.Privilege.NORMAL) {
+                    throw new CommandNotFoundException();
+                }
+                yield length == 3;
+            }
+            case ADDTRAIN -> {
+                if (type == Command.Privilege.NORMAL) {
+                    throw new CommandNotFoundException();
+                }
+                yield length == 6 || length == 8;
+            }
+            case CHECKTICKET -> {
+                if (type == Command.Privilege.SUPER) {
+                    throw new CommandNotFoundException();
+                }
+                yield length == 5;
+            }
+            default -> true;
+        };
     }
 }
