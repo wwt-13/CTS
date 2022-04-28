@@ -135,6 +135,7 @@ public class Command {
             }
             case LISTTRAIN -> listTrain(argArr);
             case LOGIN -> { /* login aadhaar name */
+
             }
             case LOGOUT -> {
             }

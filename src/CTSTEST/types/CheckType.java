@@ -1,5 +1,0 @@
-package CTSTEST.types;
-
-public enum CheckType {
-    NAME, SEX, AADHAAR, LINE_CAPACITY, DISTANCE, TRAIN_ID, TICKET_PRICE, TICKET_AMOUNT;
-}
