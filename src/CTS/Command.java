@@ -4,9 +4,9 @@ import CTS.exceptions.*;
 import CTS.types.*;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
 
 /*
  * 方法运行的基本步骤
@@ -25,7 +25,7 @@ import java.util.List;
  * */
 
 public class Command {
-    private static Command cmd = null;
+    private static Command cmd;
     private Privilege type;
 
     /* 获取单例+懒加载 */
@@ -38,10 +38,10 @@ public class Command {
     }
 
     /* 读取方法:整个程序的中枢方法,对读取得到的String字符串进行处理并决定调用各种函数 */
-    public void read(String[] argArr) throws CommandNotFoundException {
+    public void read(String[] argArr) throws CommandNotFoundException, TrainException {
         /* 获取指令类型+指令参数数量检测 */
-        CmdType cmdType = CmdType.getValue(argArr[0]);
-        if (!Check.checkArgNum(cmdType, argArr.length, type)) {
+        CmdType cmdType = CmdType.getInstance(argArr[0]);
+        if (!Check.checkArgNumAndPri(cmdType, argArr, type)) {
             throw new ArgumentsIllegalException();
         }
         switch (cmdType) {
@@ -102,19 +102,14 @@ public class Command {
             case LISTLINE -> listLine();
             /* 没办法,由于报错顺序的规定问题,这一部分的报错不符合全局规定 */
             case ADDTRAIN -> { /* addTrain trainID lineID seat_i_price seat_i_amount */
-                if (((argArr[1].charAt(0) == '0' || argArr[1].charAt(0) == 'G') && argArr.length != 9) || (argArr[1].charAt(0) == 'K' && argArr.length != 7)) {
-                    throw new ArgumentsIllegalException();
-                }
-                else {
-                    for (int i = 3; i < argArr.length; i += 2) {
-                        if (!Check.check(CheckType.TICKET_PRICE, argArr[i])) {
-                            throw new ArgumentsIllegalException();
-                        }
+                for (int i = 3; i < argArr.length; i += 2) {
+                    if (!Check.check(CheckType.TICKET_PRICE, argArr[i])) {
+                        throw new ArgumentsIllegalException();
                     }
-                    for (int i = 4; i < argArr.length; i += 2) {
-                        if (!Check.check(CheckType.TICKET_AMOUNT, argArr[i])) {
-                            throw new ArgumentsIllegalException();
-                        }
+                }
+                for (int i = 4; i < argArr.length; i += 2) {
+                    if (!Check.check(CheckType.TICKET_AMOUNT, argArr[i])) {
+                        throw new ArgumentsIllegalException();
                     }
                 }
                 if (!Check.check(CheckType.TRAIN_ID, argArr[1])) {
@@ -134,15 +129,17 @@ public class Command {
                 }
             }
             case LISTTRAIN -> listTrain(argArr);
-            case LOGIN -> { /* login aadhaar name */
-
+            case LOGIN -> login(argArr[1], argArr[2]);
+            case LOGOUT -> logout();
+            case BUYTICKET -> {
+                if (!Check.check(CheckType.TICKET_AMOUNT, argArr[5])) {
+                    throw new TrainException(TrainIllegalType.TICKET_NUM_ILLEGAL);
+                }
+                else {
+                    buyTicket(argArr);
+                }
             }
-            case LOGOUT -> {
-            }
-            case BUYTICKET -> { /* buyTicket trainID start end seatID number */
-            }
-            case LISTORDER -> {
-            }
+            case LISTORDER -> listOrder();
             case CMDNOTFOUND -> throw new CommandNotFoundException();
         }
     }
@@ -189,8 +186,7 @@ public class Command {
         else { /* 此时已经可以确认数据完全正确,直接添加即可 */
             Line line = new Line(argArr[1], Integer.parseInt(argArr[2]));
             for (int i = 3; i < argArr.length; i += 2) {
-                line.getStations().put(argArr[i],
-                                       new Station(argArr[i], Integer.parseInt(argArr[i + 1])));
+                line.getStations().put(argArr[i], new Station(argArr[i], Integer.parseInt(argArr[i + 1])));
             }
             Date.addLine(line);
             System.out.println("Add Line success");
@@ -255,12 +251,7 @@ public class Command {
         else {
             int i = 1;
             List<Line> list = new ArrayList<>(Date.getLineDate().values());
-            list.sort(new Comparator<Line>() {
-                @Override
-                public int compare(Line l1, Line l2) {
-                    return l1.getLineID().compareTo(l2.getLineID());
-                }
-            });
+            list.sort((l1, l2) -> l1.getLineID().compareTo(l2.getLineID()));
             for (Line line : list) {
                 System.out.println("[" + (i++) + "] " + line);
             }
@@ -294,7 +285,7 @@ public class Command {
                 case '0' -> new TrainNormal(argArr);
                 case 'G' -> new TrainGatimaan(argArr);
                 case 'K' -> new TrainKoya(argArr);
-                default -> throw new ArgumentsIllegalException();
+                default -> throw new IllegalArgumentException();
             };
             Date.addTrain(argArr[2], train);
             System.out.println("Add Train Success");
@@ -321,8 +312,7 @@ public class Command {
      * */
     public void checkTicket(String[] argArr) {
         Train train = Date.getTrainDate().get(argArr[1]);
-        Station start = null;
-        Station end = null;
+        Station start, end;
         if (train == null) {
             throw new TrainException(TrainIllegalType.TRAIN_SERIAL_NOT_EXIST);
         }
@@ -372,23 +362,90 @@ public class Command {
     }
 
     /* 用户登录 */
-    public void login() {
-
+    public void login(String aadhaar, String name) {
+        User user;
+        if (Date.getLoginUser() != null) {
+            throw new UseException(UseIllegalType.ALREADY_LOGIN);
+        }
+        else if ((user = Date.getUserDate().get(aadhaar)) == null) {
+            throw new UseException(UseIllegalType.USER_NOT_EXIST);
+        }
+        else if (!user.getName().equals(name)) {
+            throw new UseException(UseIllegalType.NAME_NOT_MATCH);
+        }
+        else {
+            Date.setLoginUser(user);
+            System.out.println("Login success");
+        }
     }
 
     /* 用户登出 */
     public void logout() {
-
+        if (Date.getLoginUser() == null) {
+            throw new UseException(UseIllegalType.NOT_LOGIN);
+        }
+        else {
+            Date.setLoginUser(null);
+            System.out.println("Logout success");
+        }
     }
 
     /* 购买车票 */
-    public void buyTicket() {
-
+    public void buyTicket(String[] argArr) {
+        int ticketNumber;
+        Line line;
+        Train train;
+        if (Date.getLoginUser() == null) {
+            throw new UseException(UseIllegalType.NOT_LOGIN2);
+        }
+        else if ((train = Date.getTrainDate().get(argArr[1])) == null) {
+            throw new TrainException(TrainIllegalType.TRAIN_NOT_EXIST);
+        }
+        else {
+            line = Date.getLineDate().get(train.lineID);
+            if (!line.getStations().containsKey(argArr[2]) || !line.getStations().containsKey(argArr[3])) {
+                throw new LineException(LineIllegalType.STATION_NOT_EXIST);
+            }
+            else if (
+                    switch (train.name) {
+                        case "Gatimaan" -> TrainGatimaan.contains(argArr[4]);
+                        case "Koya" -> TrainKoya.contains(argArr[4]);
+                        case "Normal" -> TrainNormal.contains(argArr[4]);
+                        default -> false;
+                    }
+            ) {
+                throw new TrainException(TrainIllegalType.SEAT_NOT_MATCH);
+            }
+            else if ((ticketNumber = Integer.parseInt(argArr[5])) <= 0) {
+                throw new UseException(UseIllegalType.TICKET_NUM_ILLEGAL);
+            }
+            else if (ticketNumber > train.seat(argArr[4]).left) {
+                throw new UseException(UseIllegalType.TICKET_NOT_ENOUGH);
+            }
+            else {
+                Order order = new Order(argArr[1], argArr[2], argArr[3], argArr[4], ticketNumber);
+                Date.addOrder(order);
+                System.out.println("Thanks for your order");
+            }
+        }
     }
 
     /* 查询自己已经购买了的车票 */
     public void listOrder() {
-
+        User user = Date.getLoginUser();
+        if (user == null) {
+            throw new UseException(UseIllegalType.NOT_LOGIN2);
+        }
+        else if (user.getOrders().isEmpty()) {
+            System.out.println("No order");
+        }
+        else {
+            ListIterator<Order> iterator = user.getOrders().listIterator(user.getOrders().size());
+            while (iterator.hasPrevious()) {
+                System.out.println(iterator);
+                iterator.previous();
+            }
+        }
     }
 
     enum Privilege {

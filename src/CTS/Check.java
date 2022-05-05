@@ -1,8 +1,10 @@
 package CTS;
 
+import CTS.exceptions.ArgumentsIllegalException;
 import CTS.exceptions.CommandNotFoundException;
 import CTS.types.CheckType;
 import CTS.types.CmdType;
+import CTS.types.TrainType;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,6 +26,7 @@ public class Check {
     private static final String regAadhaar = "(0(?!0{3})[0-9]{3}|1[0-1][0-9]{2}|12[0-2][0-9]|123" +
             "[0" +
             "-7])(00[2-9][0-9]|0[1-3][0-9]{2}|04[0-5][0-9]|0460)((0[0-9]{2}|100)[0-2])";
+
     private static final String regLineCapacity = regInteger;
     private static final String regDistance = regPositiveInteger;
     private static final String regTrainID = "^[GK0][0-9]{4}$";
@@ -46,7 +49,8 @@ public class Check {
     }
 
     /* 参数个数检查+权限检查 */
-    public static boolean checkArgNum(CmdType t, int length, Command.Privilege type) {
+    public static boolean checkArgNumAndPri(CmdType t, String[] argArr, Command.Privilege type) {
+        int length = argArr.length;
         return switch (t) {
             case QUIT, LISTLINE, LOGOUT, LISTORDER, UPGRADE, DOWNGRADE -> length == 1;
             case LISTTRAIN -> length == 1 || length == 2;
@@ -82,7 +86,19 @@ public class Check {
                 if (type == Command.Privilege.NORMAL) {
                     throw new CommandNotFoundException();
                 }
-                yield length == 7 || length == 9;
+                if (length < 2) {
+                    throw new ArgumentsIllegalException();
+                }
+                TrainType trainType = TrainType.getInstance(argArr[1]);
+                if (trainType == TrainType.KOYA) {
+                    yield length == 7;
+                }
+                else if (trainType == TrainType.NORMAL || trainType == TrainType.GATIMAAN) {
+                    yield length == 9;
+                }
+                else {
+                    yield true;
+                }
             }
             case CHECKTICKET -> {
                 if (type == Command.Privilege.SUPER) {
@@ -90,7 +106,7 @@ public class Check {
                 }
                 yield length == 5;
             }
-            default -> true;
+            case CMDNOTFOUND -> throw new CommandNotFoundException();
         };
     }
 }

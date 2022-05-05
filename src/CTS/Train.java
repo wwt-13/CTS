@@ -27,10 +27,11 @@ public class Train {
         DecimalFormat df = new DecimalFormat(".00");
         StringBuilder sb = new StringBuilder();
         Seat seatTmp = seat(type);
+        int dis = Math.abs(start.getDistance() - end.getDistance());
         sb.append("[").append(trainID).append(": ").append(start.getStationID()).append("->").append(end.getStationID()).append("]");
         sb.append(" seat:").append(type).append(" remain:").append(seatTmp.left);
-        sb.append(" distance:").append(Math.abs(start.getDistance() - end.getDistance()));
-        sb.append(" price:").append(df.format(seatTmp.price));
+        sb.append(" distance:").append(dis);
+        sb.append(" price:").append(df.format(dis * seatTmp.price));
         System.out.println(sb);
     }
 
@@ -44,5 +45,52 @@ public class Train {
             }
         }
         return sb.toString();
+    }
+}
+
+class TrainNormal extends Train {
+
+    public TrainNormal(String[] argArr) {
+        trainID = argArr[1];
+        lineID = argArr[2];
+        name = "Normal";
+        seat1 = new Seat("CC", Double.parseDouble(argArr[3]), Integer.parseInt(argArr[4]), Integer.parseInt(argArr[4]));
+        seat2 = new Seat("SB", Double.parseDouble(argArr[5]), Integer.parseInt(argArr[6]), Integer.parseInt(argArr[6]));
+        seat3 = new Seat("GG", Double.parseDouble(argArr[7]), Integer.parseInt(argArr[8]), Integer.parseInt(argArr[8]));
+    }
+
+    public static boolean contains(String type) {
+        return type.equals("CC") || type.equals("SB") || type.equals("GG");
+    }
+}
+
+class TrainGatimaan extends Train {
+
+    public TrainGatimaan(String[] argArr) {
+        trainID = argArr[1];
+        lineID = argArr[2];
+        name = "Gatimaan";
+        seat1 = new Seat("SC", Double.parseDouble(argArr[3]), Integer.parseInt(argArr[4]), Integer.parseInt(argArr[4]));
+        seat2 = new Seat("HC", Double.parseDouble(argArr[5]), Integer.parseInt(argArr[6]), Integer.parseInt(argArr[6]));
+        seat3 = new Seat("SB", Double.parseDouble(argArr[7]), Integer.parseInt(argArr[8]), Integer.parseInt(argArr[8]));
+    }
+
+    public static boolean contains(String type) {
+        return type.equals("SC") || type.equals("HC") || type.equals("SB");
+    }
+}
+
+class TrainKoya extends Train {
+
+    public TrainKoya(String[] argArr) {
+        trainID = argArr[1];
+        lineID = argArr[2];
+        name = "Koya";
+        seat1 = new Seat("1A", Double.parseDouble(argArr[3]), Integer.parseInt(argArr[4]), Integer.parseInt(argArr[4]));
+        seat2 = new Seat("2A", Double.parseDouble(argArr[5]), Integer.parseInt(argArr[6]), Integer.parseInt(argArr[6]));
+    }
+
+    public static boolean contains(String type) {
+        return type.equals("1A") || type.equals("2A");
     }
 }

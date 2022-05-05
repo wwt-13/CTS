@@ -1,7 +1,6 @@
 package CTS;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
@@ -14,6 +13,7 @@ public class Date {
     private static HashMap<String, User> UserDate = null;
     private static HashMap<String, Line> LineDate = null;
     private static HashMap<String, Train> TrainDate = null;
+    private static User loginUser;
 
     public static HashMap<String, User> getUserDate() {
         if (UserDate == null) {
@@ -73,21 +73,30 @@ public class Date {
             put("Gatimaan", 2);
             put("Normal", 3);
         }};
-        List<Train> list = new ArrayList<Train>(getTrainDate().values());
-        list.sort(new Comparator<Train>() {
-            @Override
-            public int compare(Train s1, Train s2) {
-                if (s1.name.equals(s2.name)) {
-                    return s1.trainID.compareTo(s2.trainID);
-                }
-                else {
-                    return order.get(s1.name) - order.get(s2.name);
-                }
+        List<Train> list = new ArrayList<>(getTrainDate().values());
+        list.sort((s1, s2) -> {
+            if (s1.name.equals(s2.name)) {
+                return s1.trainID.compareTo(s2.trainID);
+            }
+            else {
+                return order.get(s1.name) - order.get(s2.name);
             }
         });
         int i = 1;
         for (Train train : list) {
             System.out.println("[" + (i++) + "] " + train);
         }
+    }
+
+    public static User getLoginUser() {
+        return loginUser;
+    }
+
+    public static void setLoginUser(User loginUser) {
+        Date.loginUser = loginUser;
+    }
+
+    public static void addOrder(Order order) {
+        loginUser.getOrders().add(order);
     }
 }

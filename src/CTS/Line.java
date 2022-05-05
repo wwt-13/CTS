@@ -1,7 +1,6 @@
 package CTS;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
@@ -82,13 +81,8 @@ public class Line {
          * 这里还得看看如何自定义排序方法,之后看完了再来继续写
          * 鉴于这里只是输出数据,所以选择使用ArrayList辅助排序的方法来完成HashMap内元素的排序输出
          * */
-        List<Station> list = new ArrayList<Station>(this.stations.values());
-        list.sort(new Comparator<Station>() {
-            @Override
-            public int compare(Station s1, Station s2) {
-                return s1.getDistance() - s2.getDistance();
-            }
-        });
+        List<Station> list = new ArrayList<>(this.stations.values());
+        list.sort((s1, s2) -> {return s1.getDistance() - s2.getDistance();});
         for (Station station : list) {
             sb.append(" ").append(station.getStationID()).append(":").append(station.getDistance());
         }
@@ -106,15 +100,12 @@ public class Line {
                 add(Date.getTrainDate().get(trainID));
             }
         }};
-        list.sort(new Comparator<Train>() {
-            @Override
-            public int compare(Train s1, Train s2) {
-                if (s1.name.equals(s2.name)) {
-                    return s1.trainID.compareTo(s2.trainID);
-                }
-                else {
-                    return order.get(s1.name) - order.get(s2.name);
-                }
+        list.sort((s1, s2) -> {
+            if (s1.name.equals(s2.name)) {
+                return s1.trainID.compareTo(s2.trainID);
+            }
+            else {
+                return order.get(s1.name) - order.get(s2.name);
             }
         });
         int i = 1;

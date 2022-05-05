@@ -12,10 +12,7 @@ public enum CmdType {
     LOGIN, LOGOUT, BUYTICKET, LISTORDER,
     CMDNOTFOUND;
 
-    /*
-     * 不能理解为什么不能重载valueOf方法
-     * */
-    public static CmdType getValue(String s) {
+    public static CmdType getInstance(String s) {
         return switch (s) {
             case "QUIT" -> QUIT;
             case "addUser" -> ADDUSER;

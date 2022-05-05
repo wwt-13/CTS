@@ -23,10 +23,10 @@ public class Test {
             }
             catch (CommandNotFoundException |
                     ArgumentsIllegalException |
-                    UserException | LineException | TrainException | UseException | DuplicateActionConflictException |
+                    UserException | LineException | TrainException | UseException |
+                    DuplicateActionConflictException |
                     UnknownErrorException e) {
                 System.out.println(e.getMessage());
-//                System.out.println(Arrays.toString(e.getStackTrace()));
             }
         }
     }
